@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">  
+		<link href="http://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel="stylesheet">  
+		<script src="http://code.jquery.com/jquery-1.10.2.js"></script>  
+		<script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>  		
+	</head>
+	<body>
+	</body>
+	<script>
+		class cl_mainwindow {
+			constructor() {
+				this.mw = $('<div/>',{ css:{ "position":"relative",width:"700px",height:"700px",top:"55px",left:"305px",right:"0px",bottom:"0px",
+												   "border-style":"solid","background-image": "radial-gradient(black, white, black)"
+												}})
+											.appendTo('body')
+											.draggable()
+											.resizable();
+				this.area = $('<div/>',{ css:{ "position":"absolute",width:"90%",height:"90%",margin:"5%",
+												"border-style":"solid","background-color":"rgba(255,255,255)"
+												}})
+											.appendTo(this.mw);
+			}			
+		}
+
+		class cl_settings {
+			constructor() {
+				let me = this;
+				this.mw = $('<div/>',{ css:{ "position":"absolute",width:"70px",height:"70px",top:"60px",left:"105px",right:"0px",bottom:"0px",
+												   "border-style":"solid","display":"flex","flex-direction":"column"
+												}})
+											.appendTo('body')
+											.draggable()
+											.resizable();
+				this.upb = $('<button/>',{ css: { "text-align":"center","height":"100%" }}).html('up').appendTo(this.mw).click(function(){					
+					if (showlayer < 5) showlayer += 1;
+					board.fill( );
+					me.info.html( showlayer+1 );
+				});
+				this.info = $('<div/>',{ css: { "text-align":"center","font-size":"20px" }}).html(showlayer+1).appendTo(this.mw); 				
+				this.downb = $('<button/>',{ css: { "text-align":"center","height":"100%" }}).html('down').appendTo(this.mw).click(function(){
+					if (showlayer > 0) showlayer -= 1;
+					board.fill( );
+					me.info.html( showlayer+1 );
+				});; 
+			}			
+		}		
+		
+		class cl_board {
+			constructor(parent) {
+				var me = this;
+				this.items = [];
+				this.board = $('<div/>',{ css:{ "position":"absolute","display":"flex", "flex-wrap":"wrap", "flex-direction":"row",
+                                				"border-style":"none", "width":"100%","height":"100%" }}).appendTo(parent);
+				for(let i=0; i < 6; i++){
+					this.items[i] = [];
+					for(let j=0; j < 6; j++){
+						this.items[i][j] = $('<div/>',{ css:{ "display":"flex", "justify-content":"center","align-items":"center", 
+															  "flex": "1 1 15%"}}).appendTo(this.board);
+					}					
+				}		
+				this.fill();
+			}	
+			fill( ){	
+				for(let i=0; i < 6; i++){
+					for(let j=0; j < 6; j++){
+						this.items[i][j].empty( );
+						this.items[i][j].attr("tile",data[showlayer][i][j]);						
+						let nr = data[showlayer][i][j];
+						let top    = ( i > 0 ) ? data[showlayer][i-1][j] : 0;
+						let bottom = ( i < 5 ) ? data[showlayer][i+1][j] : 0;						
+						let left   = ( j > 0 ) ? data[showlayer][i][j-1] : 0;
+						let right  = ( j < 5 ) ? data[showlayer][i][j+1] : 0;
+						
+						let color = colors[ nr % colors.length ];		
+						let down = color;
+						if ( showlayer > 0 && nr == data[showlayer - 1][i][j] ) down = "black";
+						let backpic = "radial-gradient("+color+","+color+","+color+")";	
+						if ( showlayer > 0 ){
+							if ( nr == data[showlayer - 1][i][j] ){
+								backpic = "radial-gradient(black,"+color+","+color+")";	
+								if ( ( i > 0 && data[showlayer-1][i-1][j] == nr ) &&  ( i < 5 && data[showlayer-1][i+1][j] == nr ) )
+									backpic = "linear-gradient(to right,"+color+","+color+", black,"+color+","+color+")";
+								else if ( ( j > 0 && data[showlayer-1][i][j-1] == nr ) &&  ( j < 5 && data[showlayer-1][i][j+1] == nr ) )
+									backpic = "linear-gradient(to top,"+color+","+color+", black,"+color+","+color+")";									
+								else if ( i > 0 && data[showlayer-1][i-1][j] == nr ) 
+									backpic = "radial-gradient(farthest-corner at 50% 0%, black,"+color+","+color+")";	
+								else if ( i < 5 && data[showlayer-1][i+1][j] == nr ) 
+									backpic = "radial-gradient(farthest-corner at 50% 100%, black,"+color+","+color+")";	
+								else if ( j > 0 && data[showlayer-1][i][j-1] == nr ) 
+									backpic = "radial-gradient(farthest-corner at 0% 50%, black,"+color+","+color+")";	
+								else if ( j < 5 && data[showlayer-1][i][j+1] == nr ) 
+									backpic = "radial-gradient(farthest-corner at 100% 50%, black,"+color+","+color+")";									
+							}
+						}
+						this.items[i][j].css( 
+							{ 	
+								"border-style": "solid",
+								"border-right-color": ((nr == right  ) ? color : 'black'), 
+								"border-bottom-color": ((nr == bottom  ) ? color : 'black'), 
+								"border-top-color": ((nr == top  ) ? color : 'black'), 
+								"border-left-color":((nr == left ) ? color : 'black') , 								
+								"background-image": backpic								
+							}	);	
+						$('<div/>',{ css: { "color":"white" }} ).html( nr ).appendTo(this.items[i][j]);
+					}					
+				}				
+			}
+		}	 
+		
+		
+	
+	var data = [ 
+					[[01,01,01,02,02,02],
+					 [03,01,04,05,02,06],
+					 [03,03,07,08,09,10],
+					 [03,11,12,09,09,13],
+					 [11,11,12,12,09,13],
+					 [14,11,12,15,16,13]],
+					[[17,18,04,05,19,06],
+					 [20,21,04,05,19,06],
+					 [20,21,07,08,19,10],
+					 [20,21,07,08,22,10],
+					 [14,23,24,24,24,13],
+					 [14,25,15,15,16,16]],		
+					[[17,18,26,27,28,29],
+					 [17,18,04,05,19,06],
+					 [20,21,07,08,30,10],
+					 [31,32,33,22,22,34],
+					 [23,23,23,24,34,34],
+					 [14,25,25,15,16,34]],
+					[[17,18,26,27,28,29],
+					 [35,36,26,27,28,29],
+					 [31,32,37,38,30,30],
+					 [31,32,33,33,22,39],
+					 [40,41,41,41,42,43],
+					 [44,25,45,42,42,42]],	
+					[[35,36,26,27,28,29],
+					 [35,36,37,38,47,48],
+					 [35,36,37,38,30,39],
+					 [31,32,33,38,46,39],
+					 [40,40,41,46,46,43],
+					 [44,44,45,45,46,43]],	
+					[[49,49,49,50,47,48],
+					 [51,49,50,50,47,48],
+					 [51,51,37,50,47,48],
+					 [51,52,53,53,53,39],
+					 [40,52,52,53,54,43],
+					 [44,52,45,54,54,54]],		 
+				];
+	
+	
+	var colors = ['green','red','blue','DarkMagenta','DarkOrange','Fuchsia','Gold','Indigo','Aqua','Brown','Chartreuse','DarkBlue','Magenta','CadetBlue','DarkGoldenRod','DarkGreen'];
+	var showlayer = 5;
+	var main = new cl_mainwindow();
+	var settings = new cl_settings();
+	var board = new cl_board(main.area );
+
+	
+	
+		
+	
+	
+	
+	</script>	
+</html>
